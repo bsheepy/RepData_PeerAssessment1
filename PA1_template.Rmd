@@ -94,7 +94,18 @@ weekdaypattern <- sapply(weekdaysplit, function(x) {mean(x[, c("steps")], na.rm 
 weekendpattern <- sapply(weekendsplit, function(x) {mean(x[, c("steps")], na.rm = TRUE)})
 ```
 ```{r, echo=FALSE}
-plot( interval, weekdaypattern, type="l", col="red", main ="Average daily activity pattern, weekday = red, weekend = green", xlab ="Interval",ylab = "Average number of steps")
-lines( interval, weekendpattern, type="l", col="green",xlab ="",ylab = "" )
+
+par(mfrow=c(2,1))
+par(mar=c(0,0,0,0),oma = c(4, 4, 4, 4))
+plot( interval, weekdaypattern, type="l", col="red")
+plot( interval, weekendpattern, type="l", col="green")
+mtext("Average daily activity pattern",side=3,outer=TRUE,padj=-2)
+mtext("Interval",side=1,outer=TRUE,padj=3)
+mtext("Average number of steps",side=2,outer=TRUE,padj=-4)
+mtext("weekend               weekday",side=4,outer=TRUE,padj=1)
 ```
+
+
+
+
 

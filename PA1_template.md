@@ -1,91 +1,99 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 
 ## Loading and preprocessing the data
 
 To load the data:
-```{r}
+
+```r
 activityData <- read.csv("activity.csv")
 summary(activityData)
+```
+
+```
+##      steps                date          interval     
+##  Min.   :  0.00   2012-10-01:  288   Min.   :   0.0  
+##  1st Qu.:  0.00   2012-10-02:  288   1st Qu.: 588.8  
+##  Median :  0.00   2012-10-03:  288   Median :1177.5  
+##  Mean   : 37.38   2012-10-04:  288   Mean   :1177.5  
+##  3rd Qu.: 12.00   2012-10-05:  288   3rd Qu.:1766.2  
+##  Max.   :806.00   2012-10-06:  288   Max.   :2355.0  
+##  NA's   :2304     (Other)   :15840
+```
+
+```r
 head(activityData)
 ```
+
+```
+##   steps       date interval
+## 1    NA 2012-10-01        0
+## 2    NA 2012-10-01        5
+## 3    NA 2012-10-01       10
+## 4    NA 2012-10-01       15
+## 5    NA 2012-10-01       20
+## 6    NA 2012-10-01       25
+```
 I decided to convert the "date" column into the Date format.
-```{r}
+
+```r
 activityData$date <- as.Date(activityData$date)
 ```
 Now the data is ready to use.
 ## What is mean total number of steps taken per day?
 I split the data by day, then summed the steps on each day.
-```{r, results='asis'}
+
+```r
 a <- split(activityData, activityData$date)
 sum <-sapply(a, function(x) {sum(x[, c("steps")], na.rm = TRUE)})
 ```
-```{r, echo=FALSE}
-hist(sum, c(10), main ="Total number of steps per day" )
-```
-```{r, echo=FALSE}
-meanstep<-mean(sum, na.rm = TRUE)
-medianstep<-median(sum, na.rm = TRUE)
-```
-The mean number of steps a day is `r meanstep` and the median is `r medianstep`.
+![](PA1_template_files/figure-html/unnamed-chunk-4-1.png) 
+
+The mean number of steps a day is 9354.2295082 and the median is 10395.
 
 ## What is the average daily activity pattern?
 To plot the daily activity pattern I split the data by interval then found the mean for each interval.
-```{r}
+
+```r
 interval<-unique(activityData$interval)
 b<- split(activityData,interval)
 pattern <- sapply(b, function(x) {mean(x[, c("steps")], na.rm = TRUE)})
 ```
-```{r, echo=FALSE}
-plot(interval,pattern, type = "l", main ="Average daily activity pattern",xlab ="Interval",ylab = "Average number of steps")
-```
-```{r, echo=FALSE}
-d<-data.frame(interval,pattern)
-maxd <-d[d$pattern == max(d$pattern),]
-```
-The 5 minute interval is interval `r maxd[1]` with `r maxd[2]` steps.
+![](PA1_template_files/figure-html/unnamed-chunk-7-1.png) 
+
+The 5 minute interval is interval 835 with 206.1698113 steps.
 
 ## Imputing missing values
 
-```{r,echo=FALSE}
-numna<-nrow(activityData[is.na(activityData$steps),])
-```
-The number of rows containing NAs is `r numna`.
+
+The number of rows containing NAs is 2304.
 I decided to fill in the missing values with the interval average.
-```{r}
+
+```r
 completeActivityData<-activityData
 completeActivityData$steps <- ifelse(is.na(completeActivityData$steps), d$pattern[match(completeActivityData$interval, d$interval)], completeActivityData$steps)
 ```
-```{r, echo=FALSE}
-newnumna<-nrow(completeActivityData[is.na(completeActivityData$steps),])
-```
-Now the number of rows containing NAs is `r newnumna`.
-```{r , results='asis'}
+
+Now the number of rows containing NAs is 0.
+
+```r
 m <- split(completeActivityData, completeActivityData$date)
 newsum <-sapply(m, function(x) {sum(x[, c("steps")], na.rm = TRUE)})
 ```
-```{r, echo=FALSE}
-hist(newsum, c(10), main ="Mean steps per day with missing values filled in")
-```
-```{r, echo=FALSE}
-newmeanstep<-mean(newsum, na.rm = TRUE)
-newmedianstep<-median(newsum, na.rm = TRUE)
-```
-The mean number of steps a day is `r format(newmeanstep,scientific = FALSE)` and the median is `r format(newmedianstep, scientific = FALSE)`. Compare that to the old mean:  `r round(meanstep, 2)` and median: `r medianstep`. The new results are higher.
+![](PA1_template_files/figure-html/unnamed-chunk-13-1.png) 
+
+The mean number of steps a day is 10766.19 and the median is 10766.19. Compare that to the old mean:  9354.23 and median: 10395. The new results are higher.
 
 ## Are there differences in activity patterns between weekdays and weekends?
 I created a new column "weekday" that contains TRUE on a weekday and FALSE on the weekend
-```{r}
+
+```r
 completeActivityData$weekday<-weekdays(completeActivityData$date)
 completeActivityData$weekday<-ifelse(completeActivityData$weekday %in% c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday"), TRUE, FALSE)
 ```
 I then split my data into two data frames and used the same pattern formulas I used earlier to both.
-```{r}
+
+```r
 weekdaydata<-completeActivityData[completeActivityData$weekday,]
 weekenddata<-completeActivityData[!completeActivityData$weekday,]
 weekdaysplit<- split(weekdaydata,weekdaydata$interval)
@@ -93,8 +101,5 @@ weekendsplit<- split(weekenddata,weekenddata$interval)
 weekdaypattern <- sapply(weekdaysplit, function(x) {mean(x[, c("steps")], na.rm = TRUE)})
 weekendpattern <- sapply(weekendsplit, function(x) {mean(x[, c("steps")], na.rm = TRUE)})
 ```
-```{r, echo=FALSE}
-plot( interval, weekdaypattern, type="l", col="red", main ="Average daily activity pattern, weekday = red, weekend = green", xlab ="Interval",ylab = "Average number of steps")
-lines( interval, weekendpattern, type="l", col="green",xlab ="",ylab = "" )
-```
+![](PA1_template_files/figure-html/unnamed-chunk-17-1.png) 
 
